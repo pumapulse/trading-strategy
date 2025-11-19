@@ -9,16 +9,7 @@ Professional trading strategy platform with React + Vite frontend and Express + 
 npm run install:all
 ```
 
-**2. Setup Environment Variables**
-```bash
-# Copy example files
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
-
-# Edit backend/.env with your Supabase credentials
-```
-
-**3. Start the Application**
+**2. Start the Application**
 ```bash
 # Terminal 1 - Start Backend
 npm start
