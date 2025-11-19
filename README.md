@@ -27,10 +27,6 @@ npm start
 npm run start:frontend
 ```
 
-That's it! 🎉
-
-📖 **For detailed setup instructions, see [QUICK_START.md](QUICK_START.md)**
-
 ---
 
 ## Requirements
