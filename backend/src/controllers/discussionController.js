@@ -1,7 +1,5 @@
-import { Request, Response } from 'express';
 import { z } from 'zod';
 import { supabase } from '../config/supabase.js';
-import { AuthRequest } from '../middleware/auth.js';
 
 const createDiscussionSchema = z.object({
   title: z.string().min(5),
@@ -13,7 +11,7 @@ const createReplySchema = z.object({
   content: z.string().min(1),
 });
 
-export const getAllDiscussions = async (req: Request, res: Response) => {
+export const getAllDiscussions = async (req, res) => {
   try {
     const { data: discussions, error } = await supabase
       .from('discussions')
@@ -33,7 +31,7 @@ export const getAllDiscussions = async (req: Request, res: Response) => {
   }
 };
 
-export const getDiscussionById = async (req: Request, res: Response) => {
+export const getDiscussionById = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -65,7 +63,7 @@ export const getDiscussionById = async (req: Request, res: Response) => {
   }
 };
 
-export const createDiscussion = async (req: AuthRequest, res: Response) => {
+export const createDiscussion = async (req, res) => {
   try {
     const { title, content, category } = createDiscussionSchema.parse(req.body);
 
@@ -100,7 +98,7 @@ export const createDiscussion = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const createReply = async (req: AuthRequest, res: Response) => {
+export const createReply = async (req, res) => {
   try {
     const { id } = req.params;
     const { content } = createReplySchema.parse(req.body);
@@ -134,7 +132,7 @@ export const createReply = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const likeDiscussion = async (req: AuthRequest, res: Response) => {
+export const likeDiscussion = async (req, res) => {
   try {
     const { id } = req.params;
 

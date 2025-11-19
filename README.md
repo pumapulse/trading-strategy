@@ -1,74 +1,66 @@
 # TradexStrategies - Trading Strategy Platform
 
-Professional trading strategy platform with React + Vite frontend and Express + TypeScript backend.
+Professional trading strategy platform with React + Vite frontend and Express + JavaScript backend.
 
-## Requirements
+## 🚀 Quick Start (For Team Members)
 
-- **Node.js**: Version 16.0.0 or higher (recommended: 18.x or 20.x)
-- **npm**: Version 7.0.0 or higher
-- **Supabase Account**: For database and authentication
-
-## Project Structure
-
-```
-project/
-├── frontend/          # React + Vite + Shadcn UI
-├── backend/           # Express + TypeScript + Supabase
-└── package.json       # Root scripts
-```
-
-## Quick Start
-
-### 1. Check Node Version
-```bash
-node --version  # Should be 16.0.0 or higher
-```
-
-If you're using nvm (Node Version Manager):
-```bash
-nvm use  # Automatically uses version from .nvmrc
-```
-
-### 2. Install Dependencies
+**1. Install Dependencies**
 ```bash
 npm run install:all
 ```
 
-### 3. Setup Backend
+**2. Setup Environment Variables**
 ```bash
-cd backend
-# Create .env file with your Supabase credentials
-# See backend/.env.example for required variables
+# Copy example files
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+
+# Edit backend/.env with your Supabase credentials
 ```
 
-### 4. Setup Database
-Run the SQL script in `backend/database-setup.sql` in your Supabase SQL editor.
-
-### 5. Run Application
-
-**Start Backend:**
+**3. Start the Application**
 ```bash
+# Terminal 1 - Start Backend
 npm start
+
+# Terminal 2 - Start Frontend
+npm run start:frontend
 ```
-Backend runs on http://localhost:3001
 
-**Start Frontend (in new terminal):**
-```bash
-npm run dev:frontend
+That's it! 🎉
+
+📖 **For detailed setup instructions, see [QUICK_START.md](QUICK_START.md)**
+
+---
+
+## Requirements
+
+- **Node.js**: Version 16.0.0 or higher (any version 16+)
+- **npm**: Comes with Node.js
+- **Supabase Account**: For database (free tier available)
+
+## Project Structure
+
 ```
-Frontend runs on http://localhost:5173
+.
+├── frontend/          # React + Vite + Shadcn UI
+├── backend/           # Express + JavaScript + Supabase
+├── package.json       # Root scripts for convenience
+└── README.md          # This file
+```
 
-## API Endpoints
+## Available Commands
 
-- `POST /api/auth/signup` - Create account
-- `POST /api/auth/login` - Login  
-- `GET /api/auth/profile` - Get user profile
+From root directory:
+- `npm start` - Start backend server
+- `npm run start:frontend` - Start frontend dev server
+- `npm run install:all` - Install all dependencies
+- `npm run build` - Build frontend for production
 
 ## Tech Stack
 
 **Frontend:**
 - React 18
-- TypeScript
 - Vite
 - Shadcn UI
 - TailwindCSS
@@ -76,9 +68,10 @@ Frontend runs on http://localhost:5173
 - TanStack Query
 
 **Backend:**
-- Express
-- TypeScript
+- Express.js
+- JavaScript (ES Modules)
 - JWT Authentication
 - Supabase (PostgreSQL)
 - Bcrypt
 - Zod validation
+

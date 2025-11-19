@@ -1,7 +1,6 @@
-import { Request, Response } from 'express';
 import { supabase } from '../config/supabase.js';
 
-export const getAllStrategies = async (req: Request, res: Response) => {
+export const getAllStrategies = async (req, res) => {
   try {
     const { data: strategies, error } = await supabase
       .from('strategies')
@@ -17,7 +16,7 @@ export const getAllStrategies = async (req: Request, res: Response) => {
   }
 };
 
-export const getStrategyById = async (req: Request, res: Response) => {
+export const getStrategyById = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -36,7 +35,7 @@ export const getStrategyById = async (req: Request, res: Response) => {
   }
 };
 
-export const createStrategy = async (req: Request, res: Response) => {
+export const createStrategy = async (req, res) => {
   try {
     const strategyData = req.body;
 
@@ -58,7 +57,7 @@ export const createStrategy = async (req: Request, res: Response) => {
   }
 };
 
-export const updateStrategy = async (req: Request, res: Response) => {
+export const updateStrategy = async (req, res) => {
   try {
     const { id } = req.params;
     const strategyData = req.body;

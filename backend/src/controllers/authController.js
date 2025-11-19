@@ -1,9 +1,7 @@
-import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { supabase } from '../config/supabase.js';
-import { AuthRequest } from '../middleware/auth.js';
 
 const signupSchema = z.object({
   email: z.string().email(),
@@ -16,7 +14,7 @@ const loginSchema = z.object({
   password: z.string()
 });
 
-export const signup = async (req: Request, res: Response) => {
+export const signup = async (req, res) => {
   try {
     const { email, password, name } = signupSchema.parse(req.body);
 
@@ -44,7 +42,7 @@ export const signup = async (req: Request, res: Response) => {
     if (error) throw error;
 
     // Generate token
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!, {
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
       expiresIn: '7d'
     });
 
@@ -66,7 +64,7 @@ export const signup = async (req: Request, res: Response) => {
   }
 };
 
-export const login = async (req: Request, res: Response) => {
+export const login = async (req, res) => {
   try {
     const { email, password } = loginSchema.parse(req.body);
 
@@ -88,7 +86,7 @@ export const login = async (req: Request, res: Response) => {
     }
 
     // Generate token
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!, {
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
       expiresIn: '7d'
     });
 
@@ -110,7 +108,7 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-export const getProfile = async (req: AuthRequest, res: Response) => {
+export const getProfile = async (req, res) => {
   try {
     const { data: user, error } = await supabase
       .from('users')

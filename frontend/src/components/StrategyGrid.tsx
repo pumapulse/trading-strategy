@@ -2,7 +2,12 @@ import { useState, useEffect } from "react";
 import StrategyCard from "./StrategyCard";
 import StrategyFilters from "./StrategyFilters";
 
-const StrategyGrid = () => {
+interface StrategyGridProps {
+  limitedView?: boolean;
+  walletAddress?: string;
+}
+
+const StrategyGrid = ({ limitedView = false, walletAddress = '' }: StrategyGridProps) => {
   const [strategies, setStrategies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMarket, setSelectedMarket] = useState("All");
@@ -26,7 +31,7 @@ const StrategyGrid = () => {
         const data = await response.json();
         
         // Convert snake_case to camelCase and add indicators
-        const formattedStrategies = data.strategies.map((s: any) => ({
+        let formattedStrategies = data.strategies.map((s: any) => ({
           id: s.id,
           name: s.name,
           market: s.market,
@@ -37,6 +42,11 @@ const StrategyGrid = () => {
           avgReturn: s.avg_return,
           indicators: s.indicators || ["Technical Analysis"], // Default if not in DB
         }));
+
+        // If limited view, show only first 4 strategies
+        if (limitedView) {
+          formattedStrategies = formattedStrategies.slice(0, 4);
+        }
         
         setStrategies(formattedStrategies);
       } catch (error) {
@@ -49,7 +59,7 @@ const StrategyGrid = () => {
     };
 
     fetchStrategies();
-  }, []);
+  }, [limitedView]);
 
   const clearAllFilters = () => {
     setSelectedMarket("All");

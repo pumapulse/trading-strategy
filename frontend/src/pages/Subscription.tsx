@@ -5,21 +5,48 @@ import ErrorModal from '@/components/ErrorModal';
 import SuccessModal from '@/components/SuccessModal';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, Wallet, AlertCircle, Sparkles, Crown, Zap, Shield, TrendingUp, Lock } from 'lucide-react';
+import { Check, Wallet, AlertCircle, Sparkles, Crown, Zap, Shield, TrendingUp, Lock, CheckCircle2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { connectMetaMask, checkMetaMaskConnection, sendPayment, checkSubscription } from '@/lib/metamask';
 
+interface User {
+  walletAddress?: string;
+  [key: string]: unknown;
+}
+
+interface Subscription {
+  active: boolean;
+  isTrial: boolean;
+  startDate: string;
+  endDate: string;
+  plan: string;
+  txHash?: string;
+  walletAddress?: string;
+  amount?: string;
+  expired?: boolean;
+}
+
+interface ModalState {
+  isOpen: boolean;
+  title: string;
+  message: string;
+}
+
+interface SuccessModalState extends ModalState {
+  isPremium: boolean;
+}
+
 const Subscription = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [walletAddress, setWalletAddress] = useState<string>('');
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [isPaying, setIsPaying] = useState(false);
-  const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
+  const [isConnecting, setIsConnecting] = useState<boolean>(false);
+  const [isPaying, setIsPaying] = useState<boolean>(false);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<Subscription | null>(null);
   
   // Modal states
-  const [errorModal, setErrorModal] = useState({ isOpen: false, title: '', message: '' });
-  const [successModal, setSuccessModal] = useState({ isOpen: false, title: '', message: '', isPremium: false });
+  const [errorModal, setErrorModal] = useState<ModalState>({ isOpen: false, title: '', message: '' });
+  const [successModal, setSuccessModal] = useState<SuccessModalState>({ isOpen: false, title: '', message: '', isPremium: false });
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -30,9 +57,6 @@ const Subscription = () => {
     const sub = checkSubscription();
     if (sub) {
       setSubscriptionStatus(sub);
-      if (sub.active && !sub.expired) {
-        navigate('/dashboard');
-      }
     }
     
     initWallet();
@@ -45,49 +69,38 @@ const Subscription = () => {
     }
   };
 
-  const handleConnectWallet = async () => {
+  const handleConnectWallet = async (): Promise<void> => {
     setIsConnecting(true);
     
     try {
       const address = await connectMetaMask();
       setWalletAddress(address);
       
-      const userData = JSON.parse(localStorage.getItem('user') || '{}');
+      const userData: User = JSON.parse(localStorage.getItem('user') || '{}');
       userData.walletAddress = address;
       localStorage.setItem('user', JSON.stringify(userData));
       
-    } catch (err: any) {
+    } catch (err) {
+      const error = err as Error;
       setErrorModal({
         isOpen: true,
         title: 'Connection Failed',
-        message: err.message || 'Failed to connect MetaMask. Please make sure MetaMask is installed and try again.'
+        message: error.message || 'Failed to connect MetaMask. Please make sure MetaMask is installed and try again.'
       });
     } finally {
       setIsConnecting(false);
     }
   };
 
-  const handleFreeTrial = async () => {
+  const handleFreeTrial = async (): Promise<void> => {
     setIsConnecting(true);
 
     try {
-      // Auto-connect MetaMask if not connected
-      let address = walletAddress;
-      if (!address) {
-        address = await connectMetaMask();
-        setWalletAddress(address);
-        
-        const userData = JSON.parse(localStorage.getItem('user') || '{}');
-        userData.walletAddress = address;
-        localStorage.setItem('user', JSON.stringify(userData));
-      }
-
-      const subscription = {
+      const subscription: Subscription = {
         active: true,
         isTrial: true,
         startDate: new Date().toISOString(),
         endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        walletAddress: address,
         plan: 'Free Trial'
       };
       
@@ -96,7 +109,7 @@ const Subscription = () => {
       setSuccessModal({
         isOpen: true,
         title: '🎉 Free Trial Activated!',
-        message: 'Your 30-day free trial has been activated successfully. You now have access to 12 professional trading strategies. Enjoy!',
+        message: 'Your 30-day free trial has been activated successfully. You now have access to professional trading strategies. Connect your wallet on the strategies page to see personalized recommendations!',
         isPremium: false
       });
       
@@ -104,18 +117,19 @@ const Subscription = () => {
         navigate('/dashboard');
       }, 2000);
       
-    } catch (err: any) {
+    } catch (err) {
+      const error = err as Error;
       setErrorModal({
         isOpen: true,
         title: 'Activation Failed',
-        message: err.message || 'Failed to activate free trial. Please make sure MetaMask is installed and connected.'
+        message: error.message || 'Failed to activate free trial. Please try again.'
       });
     } finally {
       setIsConnecting(false);
     }
   };
 
-  const handlePayment = async () => {
+  const handlePayment = async (): Promise<void> => {
     setIsPaying(true);
 
     try {
@@ -125,7 +139,7 @@ const Subscription = () => {
         address = await connectMetaMask();
         setWalletAddress(address);
         
-        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        const userData: User = JSON.parse(localStorage.getItem('user') || '{}');
         userData.walletAddress = address;
         localStorage.setItem('user', JSON.stringify(userData));
       }
@@ -135,7 +149,7 @@ const Subscription = () => {
       
       const txHash = await sendPayment(address, paymentAmount);
 
-      const subscription = {
+      const subscription: Subscription = {
         active: true,
         isTrial: false,
         startDate: new Date().toISOString(),
@@ -159,14 +173,15 @@ const Subscription = () => {
         navigate('/dashboard');
       }, 2500);
       
-    } catch (err: any) {
+    } catch (err) {
+      const error = err as Error;
       let errorMessage = 'Payment failed. Please try again.';
       
-      if (err.message.includes('User rejected')) {
+      if (error.message.includes('User rejected')) {
         errorMessage = 'Transaction was cancelled. No payment was made.';
-      } else if (err.message.includes('insufficient funds')) {
+      } else if (error.message.includes('insufficient funds')) {
         errorMessage = 'Insufficient funds in your wallet. Please add more ETH and try again.';
-      } else if (err.message.includes('MetaMask')) {
+      } else if (error.message.includes('MetaMask')) {
         errorMessage = 'MetaMask is not installed. Please install MetaMask extension and try again.';
       }
       
@@ -253,15 +268,40 @@ const Subscription = () => {
       `}</style>
       <Header />
       <div className="container mx-auto px-4 py-12">
+        {/* Current Subscription Status */}
+        {subscriptionStatus && subscriptionStatus.active && !subscriptionStatus.expired && (
+          <Alert className="mb-8 max-w-4xl mx-auto border-green-500/50 bg-green-500/10">
+            <CheckCircle2 className="h-4 w-4 text-green-500" />
+            <AlertDescription className="text-green-700 dark:text-green-400">
+              <div className="flex items-center justify-between">
+                <div>
+                  <strong>Current Plan: {subscriptionStatus.plan || (subscriptionStatus.isTrial ? 'Free Trial' : 'Premium')}</strong>
+                  <p className="text-sm mt-1">
+                    Active until {new Date(subscriptionStatus.endDate).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="text-sm">
+                  Want more features? Upgrade below! 👇
+                </div>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Hero Section */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-4">
             <Sparkles className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium">Premium Trading Platform</span>
           </div>
-          <h1 className="text-5xl font-bold mb-4">Choose Your Plan</h1>
+          <h1 className="text-5xl font-bold mb-4">
+            {subscriptionStatus && subscriptionStatus.active ? 'Upgrade Your Plan' : 'Choose Your Plan'}
+          </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Get access to professional trading strategies and start your journey to financial freedom
+            {subscriptionStatus && subscriptionStatus.active 
+              ? 'Unlock more strategies and premium features with an upgrade'
+              : 'Get access to professional trading strategies and start your journey to financial freedom'
+            }
           </p>
         </div>
 
@@ -285,14 +325,12 @@ const Subscription = () => {
         />
 
         {/* Info Alert */}
-        {!walletAddress && (
-          <Alert className="mb-8 max-w-2xl mx-auto border-blue-500/50 bg-blue-500/10">
-            <Sparkles className="h-4 h-4 text-blue-500" />
-            <AlertDescription className="text-blue-700 dark:text-blue-400">
-              MetaMask will connect automatically when you choose a plan. Make sure you have MetaMask installed!
-            </AlertDescription>
-          </Alert>
-        )}
+        <Alert className="mb-8 max-w-2xl mx-auto border-blue-500/50 bg-blue-500/10">
+          <Sparkles className="h-4 h-4 text-blue-500" />
+          <AlertDescription className="text-blue-700 dark:text-blue-400">
+            <strong>No wallet required to start!</strong> Connect your wallet later on the strategies page to get personalized recommendations based on your tokens.
+          </AlertDescription>
+        </Alert>
 
         {/* Feature Comparison Table */}
         <div className="max-w-5xl mx-auto mb-12">
@@ -365,19 +403,23 @@ const Subscription = () => {
                   <span className="text-5xl font-bold">$0</span>
                   <span className="text-muted-foreground">/month</span>
                 </div>
-                <p className="text-sm text-green-500 font-semibold mt-2">First 30 days free!</p>
               </CardHeader>
               <CardContent>
                 <Button 
                   onClick={handleFreeTrial}
-                  disabled={isConnecting}
+                  disabled={isConnecting || (subscriptionStatus && subscriptionStatus.active)}
                   className="w-full mb-6"
                   size="lg"
                 >
                   {isConnecting ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                      Connecting MetaMask...
+                      Activating...
+                    </>
+                  ) : subscriptionStatus && subscriptionStatus.active ? (
+                    <>
+                      <Check className="w-5 h-5 mr-2" />
+                      Current Plan
                     </>
                   ) : (
                     <>
@@ -386,6 +428,12 @@ const Subscription = () => {
                     </>
                   )}
                 </Button>
+                <p className="text-xs text-center text-muted-foreground">
+                  {subscriptionStatus && subscriptionStatus.active 
+                    ? 'You already have this plan'
+                    : 'No wallet connection required • Instant access'
+                  }
+                </p>
                 
                 <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
                   {freeTrialFeatures.map((feature, index) => (
@@ -442,7 +490,7 @@ const Subscription = () => {
                   ) : (
                     <>
                       <Wallet className="w-5 h-5 mr-2" />
-                      Pay with MetaMask
+                      Upgrade to Premium
                     </>
                   )}
                 </Button>
@@ -574,55 +622,7 @@ const Subscription = () => {
           </div>
         )}
 
-        {/* Connected Wallet Info */}
-        {walletAddress && (
-          <Card className="max-w-2xl mx-auto bg-muted/50 mb-8">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-green-500/10 rounded-full flex items-center justify-center">
-                    <Check className="w-5 h-5 text-green-500" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Wallet Connected</p>
-                    <p className="text-xs text-muted-foreground font-mono">
-                      {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
-                    </p>
-                  </div>
-                </div>
-                <Button variant="outline" size="sm" onClick={handleConnectWallet}>
-                  Change Wallet
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-        
-        {/* Manual Connect Option */}
-        {!walletAddress && (
-          <div className="text-center mb-8">
-            <p className="text-sm text-muted-foreground mb-3">
-              Or connect your wallet manually first
-            </p>
-            <Button 
-              variant="outline"
-              onClick={handleConnectWallet}
-              disabled={isConnecting}
-            >
-              {isConnecting ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2"></div>
-                  Connecting...
-                </>
-              ) : (
-                <>
-                  <Wallet className="w-4 h-4 mr-2" />
-                  Connect MetaMask Now
-                </>
-              )}
-            </Button>
-          </div>
-        )}
+
 
         {/* Value Proposition */}
         <div className="max-w-4xl mx-auto mb-12">
@@ -695,7 +695,7 @@ const Subscription = () => {
                     <span className="text-2xl font-bold text-green-500">+$174/month</span>
                   </div>
                   <p className="text-xs text-center text-muted-foreground mt-2">
-                    That's a 348% ROI on your subscription! 🚀
+                    That's a 348% ROI on your subscription! 
                   </p>
                 </div>
               </div>
