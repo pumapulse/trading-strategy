@@ -1,0 +1,83 @@
+import { Request, Response } from 'express';
+import { supabase } from '../config/supabase.js';
+
+export const getAllStrategies = async (req: Request, res: Response) => {
+  try {
+    const { data: strategies, error } = await supabase
+      .from('strategies')
+      .select('*')
+      .order('id', { ascending: true });
+
+    if (error) throw error;
+
+    res.json({ strategies });
+  } catch (error) {
+    console.error('Get strategies error:', error);
+    res.status(500).json({ error: 'Failed to get strategies' });
+  }
+};
+
+export const getStrategyById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const { data: strategy, error } = await supabase
+      .from('strategies')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+
+    res.json({ strategy });
+  } catch (error) {
+    console.error('Get strategy error:', error);
+    res.status(500).json({ error: 'Failed to get strategy' });
+  }
+};
+
+export const createStrategy = async (req: Request, res: Response) => {
+  try {
+    const strategyData = req.body;
+
+    const { data: strategy, error } = await supabase
+      .from('strategies')
+      .insert([strategyData])
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    res.status(201).json({
+      message: 'Strategy created successfully',
+      strategy,
+    });
+  } catch (error) {
+    console.error('Create strategy error:', error);
+    res.status(500).json({ error: 'Failed to create strategy' });
+  }
+};
+
+export const updateStrategy = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const strategyData = req.body;
+
+    const { data: strategy, error } = await supabase
+      .from('strategies')
+      .update(strategyData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    res.json({
+      message: 'Strategy updated successfully',
+      strategy,
+    });
+  } catch (error) {
+    console.error('Update strategy error:', error);
+    res.status(500).json({ error: 'Failed to update strategy' });
+  }
+};

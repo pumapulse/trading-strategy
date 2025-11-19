@@ -1,0 +1,11 @@
+{
+  "name": "fullstack-app",
+  "private": true,
+  "scripts": {
+    "start": "cd backend && npm start",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm start",
+    "install:all": "cd frontend && npm install && cd ../backend && npm install",
+    "build:frontend": "cd frontend && npm run build"
+  }
+}
